@@ -3,13 +3,13 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getDatabase } from 'firebase/database';
 
 const firebaseConfig = {
-  apiKey:            "AIzaSyDM7_dNimR3Hso8UgNYH3v8XZm3HBZPaCo",
-  authDomain:        "green-steps-dca7c.firebaseapp.com",
-  databaseURL:       "https://green-steps-dca7c-default-rtdb.firebaseio.com",
-  projectId:         "green-steps-dca7c",
-  storageBucket:     "green-steps-dca7c.firebasestorage.app",
-  messagingSenderId: "986590724268",
-  appId:             "1:986590724268:web:4e209e325c34d722a8df09",
+  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL:       import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);

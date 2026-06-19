@@ -1,13 +1,12 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import {
   Zap, Car, Salad, ShoppingBag, Filter,
   CheckCircle2, Bookmark, BookmarkCheck, Search,
   TrendingDown, Clock, Star, ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import actionsData from '../data/actions';
 import './ActionLibrary.css';
-
-const API = `${import.meta.env.VITE_API_URL ?? ''}/api/actions`;
 
 /* ── Category icon map ───────────────────────────────────── */
 const catIcons = {
@@ -124,26 +123,16 @@ const SORT_OPTIONS = [
 export default function ActionLibrary() {
   const { progress, updateProgress } = useAuth();
 
-  const [catalog,    setCatalog]    = useState([]);
-  const [loading,    setLoading]    = useState(true);
   const [category,   setCategory]   = useState('All');
   const [difficulty, setDifficulty] = useState('All');
   const [sortBy,     setSortBy]     = useState('impact');
   const [search,     setSearch]     = useState('');
   const [showBookmarked, setShowBookmarked] = useState(false);
 
-  const fetchCatalog = useCallback(() => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (category   !== 'All') params.set('category',   category);
-    if (difficulty !== 'All') params.set('difficulty', difficulty);
-    fetch(`${API}?${params}`)
-      .then(r => r.json())
-      .then(d => { setCatalog(d); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [category, difficulty]);
-
-  useEffect(() => { fetchCatalog(); }, [fetchCatalog]);
+  const catalog = actionsData.filter(a =>
+    (category   === 'All' || a.category   === category) &&
+    (difficulty === 'All' || a.difficulty === difficulty)
+  );
 
   /* Merge catalog with user's personal progress */
   const completedIds  = new Set(progress.completedActions.map(a => a.id));
@@ -282,13 +271,11 @@ export default function ActionLibrary() {
 
         <div className="al-count animate-fade-up delay-200">
           <span className="label-sm" style={{ color: 'var(--color-on-surface-variant)' }}>
-            {loading ? 'Loading…' : `${displayed.length} action${displayed.length !== 1 ? 's' : ''} found`}
+            {`${displayed.length} action${displayed.length !== 1 ? 's' : ''} found`}
           </span>
         </div>
 
-        {loading ? (
-          <div className="loading-state"><div className="spinner" /></div>
-        ) : displayed.length === 0 ? (
+        {displayed.length === 0 ? (
           <div className="al-empty">
             <Zap size={48} color="var(--color-outline-variant)" strokeWidth={1.2} />
             <h3 className="headline-md">No actions found</h3>

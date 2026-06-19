@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -9,22 +9,38 @@ import Dashboard from './pages/Dashboard';
 import Insights from './pages/Insights';
 import ActionLibrary from './pages/ActionLibrary';
 
+function AppRoutes() {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="loading-state" style={{ minHeight: '100vh' }}>
+        <div className="spinner" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="page-wrapper">
+      <Navbar />
+      <main className="page-content">
+        <Routes>
+          <Route path="/"          element={<Landing />} />
+          <Route path="/login"     element={<Login />} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/insights"  element={<ProtectedRoute><Insights /></ProtectedRoute>} />
+          <Route path="/actions"   element={<ProtectedRoute><ActionLibrary /></ProtectedRoute>} />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
-      <div className="page-wrapper">
-        <Navbar />
-        <main className="page-content">
-          <Routes>
-            <Route path="/"       element={<Landing />} />
-            <Route path="/login"  element={<Login />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/insights"  element={<ProtectedRoute><Insights /></ProtectedRoute>} />
-            <Route path="/actions"   element={<ProtectedRoute><ActionLibrary /></ProtectedRoute>} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+      <AppRoutes />
     </AuthProvider>
   );
 }

@@ -27,8 +27,8 @@ export default function Navbar() {
 
   const isLanding = pathname === '/';
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 

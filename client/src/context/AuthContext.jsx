@@ -7,7 +7,7 @@ import {
   signOut,
   updateProfile,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { ref, get, set, update } from 'firebase/database';
 import { auth, db, googleProvider } from '../firebase';
 
 const AuthContext = createContext(null);
@@ -19,13 +19,13 @@ const freshProgress = () => ({
 });
 
 async function loadOrCreateProgress(uid) {
-  const ref  = doc(db, 'users', uid);
-  const snap = await getDoc(ref);
+  const userRef = ref(db, `users/${uid}/progress`);
+  const snap    = await get(userRef);
   if (snap.exists()) {
-    return snap.data().progress ?? freshProgress();
+    return snap.val();
   }
   const fresh = freshProgress();
-  await setDoc(ref, { progress: fresh });
+  await set(userRef, fresh);
   return fresh;
 }
 
@@ -55,7 +55,7 @@ export function AuthProvider({ children }) {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, { displayName: name });
     const fresh = freshProgress();
-    await setDoc(doc(db, 'users', cred.user.uid), { progress: fresh });
+    await set(ref(db, `users/${cred.user.uid}/progress`), fresh);
     setUser({ name, email, uid: cred.user.uid });
     setProgress(fresh);
   };
@@ -78,13 +78,13 @@ export function AuthProvider({ children }) {
     await signOut(auth);
   };
 
-  /* Update progress locally + persist to Firestore */
+  /* Update progress locally + persist to Realtime Database */
   const updateProgress = (updater) => {
     const firebaseUser = auth.currentUser;
     if (!firebaseUser) return;
     setProgress(prev => {
       const next = typeof updater === 'function' ? updater(prev) : { ...prev, ...updater };
-      updateDoc(doc(db, 'users', firebaseUser.uid), { progress: next }).catch(console.error);
+      set(ref(db, `users/${firebaseUser.uid}/progress`), next).catch(console.error);
       return next;
     });
   };

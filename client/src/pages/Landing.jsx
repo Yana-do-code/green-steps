@@ -61,26 +61,6 @@ const features = [
   },
 ];
 
-const testimonials = [
-  {
-    quote: "GreenSteps helped me cut my footprint by 31% in just 6 months. The personalized recommendations actually fit my life.",
-    name: "Sarah Jenkins",
-    role: "Sustainability Advocate & Community Leader",
-    initials: "SJ",
-  },
-  {
-    quote: "The dashboard makes complex data feel approachable. I finally understand where my emissions are coming from.",
-    name: "Marcus Chen",
-    role: "Software Engineer",
-    initials: "MC",
-  },
-  {
-    quote: "I love how the action library gives me concrete steps, not just awareness. Real change, real results.",
-    name: "Priya Nair",
-    role: "Educator & Climate Advocate",
-    initials: "PN",
-  },
-];
 
 export default function Landing() {
   const [statsVisible, setStatsVisible] = useState(false);
@@ -144,9 +124,6 @@ export default function Landing() {
           </div>
         </div>
 
-        <a href="#features" className="hero__scroll">
-          <ChevronDown size={20} />
-        </a>
       </section>
 
       {/* ── Stats Bar ────────────────────────────────────── */}
@@ -250,29 +227,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Testimonials ─────────────────────────────────── */}
-      <section className="testimonials">
-        <div className="container">
-          <div className="section-header">
-            <span className="label-sm section-eyebrow">Community Stories</span>
-            <h2 className="headline-md section-title">Stewards making a difference</h2>
-          </div>
-          <div className="testimonials__grid">
-            {testimonials.map(({ quote, name, role, initials }, i) => (
-              <div key={name} className="testimonial card card-p" style={{ animationDelay: `${i*0.15}s` }}>
-                <p className="testimonial__quote">"{quote}"</p>
-                <div className="testimonial__author">
-                  <div className="testimonial__avatar">{initials}</div>
-                  <div>
-                    <div className="testimonial__name">{name}</div>
-                    <div className="testimonial__role">{role}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── CTA Section ──────────────────────────────────── */}
       <section className="cta-section">

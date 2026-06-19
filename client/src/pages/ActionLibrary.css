@@ -84,8 +84,10 @@
   pointer-events: none;
 }
 .al-search__input {
-  padding-left: 38px;
   width: 220px;
+}
+.al-search .input {
+  padding-left: 40px;
 }
 
 /* Category filter pills (reused from Insights) */

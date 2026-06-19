@@ -81,6 +81,15 @@
 /* CTA */
 .navbar__cta {
   margin-left: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar__logout {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Hamburger */

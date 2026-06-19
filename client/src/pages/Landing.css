@@ -88,6 +88,7 @@
   padding: 20px 24px;
   max-width: 380px;
   box-shadow: var(--shadow-md);
+  margin-bottom: var(--space-8);
 }
 .hero__momentum-label {
   color: var(--color-on-surface-variant);
@@ -389,6 +390,7 @@
   display: flex;
   gap: 12px;
   margin-bottom: 16px;
+  justify-content: center;
 }
 .cta-section__input { max-width: 300px; }
 .cta-section__note {

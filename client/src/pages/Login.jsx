@@ -5,18 +5,23 @@ import { useAuth } from '../context/AuthContext';
 import './Login.css';
 
 const FIREBASE_ERRORS = {
-  'auth/user-not-found':       'No account found with this email.',
-  'auth/wrong-password':       'Incorrect password.',
-  'auth/email-already-in-use': 'An account with this email already exists.',
-  'auth/weak-password':        'Password must be at least 6 characters.',
-  'auth/invalid-email':        'Please enter a valid email address.',
-  'auth/invalid-credential':   'Incorrect email or password.',
-  'auth/popup-closed-by-user': 'Google sign-in was cancelled.',
-  'auth/too-many-requests':    'Too many attempts. Please try again later.',
+  'auth/user-not-found':          'No account found with this email.',
+  'auth/wrong-password':          'Incorrect password.',
+  'auth/email-already-in-use':    'An account with this email already exists.',
+  'auth/weak-password':           'Password must be at least 6 characters.',
+  'auth/invalid-email':           'Please enter a valid email address.',
+  'auth/invalid-credential':      'Incorrect email or password.',
+  'auth/popup-closed-by-user':    'Google sign-in was cancelled.',
+  'auth/popup-blocked':           'Popup was blocked — please allow popups for this site.',
+  'auth/cancelled-popup-request': 'Google sign-in was cancelled.',
+  'auth/unauthorized-domain':     'This domain is not authorised for Google sign-in.',
+  'auth/too-many-requests':       'Too many attempts. Please try again later.',
+  'auth/network-request-failed':  'Network error — check your connection and try again.',
+  'auth/internal-error':          'Google sign-in failed. Please try again.',
 };
 
 function friendlyError(err) {
-  return FIREBASE_ERRORS[err?.code] ?? 'Something went wrong. Please try again.';
+  return FIREBASE_ERRORS[err?.code] ?? `Sign-in failed (${err?.code ?? 'unknown'}). Please try again.`;
 }
 
 export default function Login() {

@@ -84,11 +84,6 @@ export default function Landing() {
         <div className="blob hero__blob2" />
 
         <div className="container hero__content">
-          <div className="hero__badge animate-fade-up">
-            <Leaf size={14} />
-            <span>Joined by 12,400+ stewards this month</span>
-          </div>
-
           <h1 className="display-lg hero__headline animate-fade-up delay-100">
             Your Journey to a<br />
             <span className="hero__headline-accent">Lighter Footprint</span>

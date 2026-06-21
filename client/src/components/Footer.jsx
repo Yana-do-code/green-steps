@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Leaf, Github, Twitter, Instagram } from 'lucide-react';
+import { Leaf, Github } from 'lucide-react';
 import './Footer.css';
 
 export default function Footer() {
@@ -17,9 +17,7 @@ export default function Footer() {
             Toward an Optimistic Future.
           </p>
           <div className="footer__social">
-            <a href="#" aria-label="Twitter" className="footer__social-link"><Twitter size={18} /></a>
-            <a href="#" aria-label="Instagram" className="footer__social-link"><Instagram size={18} /></a>
-            <a href="#" aria-label="GitHub" className="footer__social-link"><Github size={18} /></a>
+            <a href="https://github.com/Yana-do-code/green-steps" target="_blank" rel="noreferrer" aria-label="GitHub" className="footer__social-link"><Github size={18} /></a>
           </div>
         </div>
 
@@ -34,19 +32,17 @@ export default function Footer() {
             </ul>
           </div>
           <div className="footer__nav-group">
-            <h4 className="label-sm footer__nav-title">Resources</h4>
+            <h4 className="label-sm footer__nav-title">Legal</h4>
             <ul>
-              <li><a href="#" className="footer__nav-link">Carbon Calculator</a></li>
-              <li><a href="#" className="footer__nav-link">Methodology</a></li>
-              <li><a href="#" className="footer__nav-link">Blog</a></li>
+              <li><Link to="/terms" className="footer__nav-link">Terms of Service</Link></li>
+              <li><Link to="/privacy" className="footer__nav-link">Privacy Policy</Link></li>
+              <li><Link to="/cookies" className="footer__nav-link">Cookie Settings</Link></li>
             </ul>
           </div>
           <div className="footer__nav-group">
-            <h4 className="label-sm footer__nav-title">Legal</h4>
+            <h4 className="label-sm footer__nav-title">Resources</h4>
             <ul>
-              <li><a href="#" className="footer__nav-link">Terms of Service</a></li>
-              <li><a href="#" className="footer__nav-link">Privacy Policy</a></li>
-              <li><a href="#" className="footer__nav-link">Cookie Settings</a></li>
+              <li><Link to="/calculator" className="footer__nav-link">Carbon Calculator</Link></li>
             </ul>
           </div>
         </div>

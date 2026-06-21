@@ -51,10 +51,17 @@ export default function Login() {
     }
   };
 
-  const handleGoogle = () => {
+  const handleGoogle = async () => {
     setError('');
     setBusy(true);
-    loginWithGoogle();
+    try {
+      await loginWithGoogle();
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError(friendlyError(err));
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (

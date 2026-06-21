@@ -5,7 +5,11 @@ import {
   Leaf, ArrowRight, CheckCircle2, Zap, BarChart3,
   Users, Globe2, Award, TrendingDown, Activity, Shield
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import './Landing.css';
+
+const GLOBAL_AVG       = 7.5;
+const TARGET_FOOTPRINT = 2.0;
 
 /* ── Animation variants ─────────────────────────────────── */
 const fadeUp = {
@@ -101,8 +105,13 @@ const previewSteps = [
   { label: 'Build eco-friendly habits', icon: '🌱' },
 ];
 
-function HeroPreviewCard() {
+function HeroPreviewCard({ user, footprint }) {
   const circumference = 2 * Math.PI * 44;
+  const fillPct = footprint != null
+    ? Math.min((GLOBAL_AVG - footprint) / (GLOBAL_AVG - TARGET_FOOTPRINT), 1)
+    : 0.15;
+  const dashOffset = circumference * (1 - fillPct);
+
   return (
     <motion.div
       className="hero__preview-card"
@@ -114,10 +123,13 @@ function HeroPreviewCard() {
       <div className="hpc__header">
         <div className="hpc__dot hpc__dot--pulse" />
         <span className="hpc__live">Your Dashboard</span>
-        <Link to="/login" className="hpc__date hpc__date--link">Sign in to start →</Link>
+        {user
+          ? <span className="hpc__date">{user.name?.split(' ')[0] ?? 'Welcome'} 👋</span>
+          : <Link to="/login" className="hpc__date hpc__date--link">Sign in to start →</Link>
+        }
       </div>
 
-      {/* Footprint ring — empty state */}
+      {/* Footprint ring */}
       <div className="hpc__ring-wrap">
         <svg viewBox="0 0 100 100" width="110" height="110">
           <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(0,108,73,0.1)" strokeWidth="8" />
@@ -126,7 +138,7 @@ function HeroPreviewCard() {
             stroke="url(#ringGrad)" strokeWidth="8" strokeLinecap="round"
             strokeDasharray={circumference}
             initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset: circumference * 0.85 }}
+            animate={{ strokeDashoffset: dashOffset }}
             transition={{ duration: 1.4, delay: 0.8, ease: 'easeOut' }}
             transform="rotate(-90 50 50)"
           />
@@ -143,8 +155,10 @@ function HeroPreviewCard() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.2 }}
-          >—</motion.span>
-          <small>your footprint</small>
+          >
+            {footprint != null ? `${footprint}t` : '—'}
+          </motion.span>
+          <small>{footprint != null ? 'CO₂e/yr' : 'your footprint'}</small>
         </div>
       </div>
 
@@ -171,7 +185,7 @@ function HeroPreviewCard() {
         animate={{ opacity: 1 }}
         transition={{ delay: 1.6 }}
       >
-        <Leaf size={13} /> Log actions daily to grow your impact
+        <Leaf size={13} /> {user ? 'Keep logging actions to reduce your footprint' : 'Log actions daily to grow your impact'}
       </motion.div>
 
     </motion.div>
@@ -182,6 +196,11 @@ function HeroPreviewCard() {
 export default function Landing() {
   const featuresRef = useRef(null);
   const featuresInView = useInView(featuresRef, { once: true, margin: '-80px' });
+  const { user, progress, loading } = useAuth();
+
+  const footprint = (!loading && user && progress?.completedActions)
+    ? parseFloat(Math.max(GLOBAL_AVG - progress.completedActions.reduce((s, a) => s + a.impact, 0), 1.0).toFixed(1))
+    : null;
 
   return (
     <div className="landing">
@@ -240,8 +259,8 @@ export default function Landing() {
               transition={{ duration: 0.5, delay: 0.55 }}
             >
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                <Link to="/login" className="btn btn-primary btn-lg hero__cta-primary">
-                  Start Tracking Free
+                <Link to={user ? '/dashboard' : '/login'} className="btn btn-primary btn-lg hero__cta-primary">
+                  {user ? 'Go to Dashboard' : 'Start Tracking Free'}
                   <ArrowRight size={18} />
                 </Link>
               </motion.div>
@@ -271,7 +290,7 @@ export default function Landing() {
 
           {/* Right: live preview card */}
           <div className="hero__preview">
-            <HeroPreviewCard />
+            <HeroPreviewCard user={user} footprint={footprint} />
           </div>
         </div>
       </section>

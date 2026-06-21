@@ -3,8 +3,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   signOut,
   updateProfile,
 } from 'firebase/auth';
@@ -47,8 +46,6 @@ export function AuthProvider({ children }) {
   const [loading,  setLoading]  = useState(true);
 
   useEffect(() => {
-    getRedirectResult(auth).catch(() => {});
-
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser({ name: firebaseUser.displayName, email: firebaseUser.email, uid: firebaseUser.uid });
@@ -76,7 +73,7 @@ export function AuthProvider({ children }) {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const loginWithGoogle = () => signInWithRedirect(auth, googleProvider);
+  const loginWithGoogle = () => signInWithPopup(auth, googleProvider);
 
   const logout = async () => {
     await signOut(auth);

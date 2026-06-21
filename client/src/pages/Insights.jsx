@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine
@@ -9,12 +10,11 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { GLOBAL_AVG_FOOTPRINT as GLOBAL_AVG, TARGET_FOOTPRINT as SUSTAINABLE_TARGET } from '../utils/constants';
 import './Insights.css';
 
-const GLOBAL_AVG       = 7.5;
-const CITY_AVG         = 7.4;
-const SUSTAINABLE_TARGET = 2.0;
-const TOP_STEWARDS     = 3.1;
+const CITY_AVG     = 7.4;
+const TOP_STEWARDS = 3.1;
 
 /* ── Insight type config ────────────────────────────── */
 const insightConfig = {
@@ -89,6 +89,13 @@ function CompBar({ label, value, max, color }) {
   );
 }
 
+CompBar.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.number.isRequired,
+  max:   PropTypes.number.isRequired,
+  color: PropTypes.string.isRequired,
+};
+
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
@@ -102,6 +109,12 @@ function CustomTooltip({ active, payload, label }) {
     </div>
   );
 }
+
+CustomTooltip.propTypes = {
+  active:  PropTypes.bool,
+  payload: PropTypes.array,
+  label:   PropTypes.string,
+};
 
 /* ── Eco score from offset ───────────────────────────── */
 function ecoScore(totalOffset) {

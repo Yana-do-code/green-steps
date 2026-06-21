@@ -5,11 +5,10 @@ import {
   Leaf, ArrowRight, CheckCircle2, Zap, BarChart3,
   Users, Globe2, Award, TrendingDown, Activity, Shield
 } from 'lucide-react';
+import PropTypes from 'prop-types';
 import { useAuth } from '../context/AuthContext';
+import { GLOBAL_AVG_FOOTPRINT as GLOBAL_AVG, TARGET_FOOTPRINT } from '../utils/constants';
 import './Landing.css';
-
-const GLOBAL_AVG       = 7.5;
-const TARGET_FOOTPRINT = 2.0;
 
 /* ── Animation variants ─────────────────────────────────── */
 const fadeUp = {
@@ -191,6 +190,11 @@ function HeroPreviewCard({ user, footprint }) {
     </motion.div>
   );
 }
+
+HeroPreviewCard.propTypes = {
+  user:      PropTypes.shape({ name: PropTypes.string }),
+  footprint: PropTypes.number,
+};
 
 /* ── Main component ─────────────────────────────────────── */
 export default function Landing() {

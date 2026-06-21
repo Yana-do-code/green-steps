@@ -40,13 +40,25 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    const email    = form.email.trim();
+    const name     = form.name.trim();
+    const password = form.password;
+
+    if (!email) { setError('Please enter your email address.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('Please enter a valid email address.'); return; }
+    if (!password) { setError('Please enter your password.'); return; }
+    if (tab === 'signup') {
+      if (!name)              { setError('Please enter your name.'); return; }
+      if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    }
+
     setBusy(true);
     try {
       if (tab === 'signup') {
-        if (!form.name.trim()) { setError('Please enter your name.'); setBusy(false); return; }
-        await signup(form.name.trim(), form.email, form.password);
+        await signup(name, email, password);
       } else {
-        await login(form.email, form.password);
+        await login(email, password);
       }
       navigate(from, { replace: true });
     } catch (err) {
@@ -119,19 +131,19 @@ export default function Login() {
           {tab === 'signup' && (
             <div className="login-field">
               <label htmlFor="login-name" className="login-label label-sm">Full Name</label>
-              <input id="login-name" className="input login-input" type="text" placeholder="Your name" value={form.name} onChange={set('name')} autoComplete="name" />
+              <input id="login-name" className="input login-input" type="text" placeholder="Your name" value={form.name} onChange={set('name')} autoComplete="name" aria-required="true" aria-describedby="login-error" />
             </div>
           )}
           <div className="login-field">
             <label htmlFor="login-email" className="login-label label-sm">Email Address</label>
-            <input id="login-email" className="input login-input" type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} autoComplete="email" />
+            <input id="login-email" className="input login-input" type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} autoComplete="email" aria-required="true" aria-describedby="login-error" />
           </div>
           <div className="login-field">
             <label htmlFor="login-password" className="login-label label-sm">Password</label>
-            <input id="login-password" className="input login-input" type="password" placeholder={tab === 'signup' ? 'Min. 6 characters' : '••••••••'} value={form.password} onChange={set('password')} autoComplete={tab === 'signup' ? 'new-password' : 'current-password'} />
+            <input id="login-password" className="input login-input" type="password" placeholder={tab === 'signup' ? 'Min. 6 characters' : '••••••••'} value={form.password} onChange={set('password')} autoComplete={tab === 'signup' ? 'new-password' : 'current-password'} aria-required="true" aria-describedby="login-error" />
           </div>
 
-          <p role="alert" aria-live="polite" className={error ? 'login-error' : ''} style={{ minHeight: '1.25rem' }}>
+          <p id="login-error" role="alert" aria-live="polite" className={error ? 'login-error' : ''} style={{ minHeight: '1.25rem' }}>
             {error}
           </p>
 

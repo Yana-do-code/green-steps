@@ -1,5 +1,11 @@
 const CATEGORIES = ['Transport', 'Diet', 'Energy', 'Shopping'];
 
+/**
+ * Returns up to 3 action recommendations ranked by impact + category gap.
+ * @param {Array} completedActions - User's logged actions (with completedAt, category, id).
+ * @param {Array} allActions - Full action catalogue.
+ * @returns {Array} Top 3 scored actions not yet logged today.
+ */
 export function getRecommendations(completedActions, allActions) {
   const today = new Date().toISOString().split('T')[0];
   const thirtyDaysAgo = new Date();
@@ -29,6 +35,12 @@ export function getRecommendations(completedActions, allActions) {
     .slice(0, 3);
 }
 
+/**
+ * Returns a contextual dashboard message based on today's activity and streak.
+ * @param {Array} completedActions - All user logged actions.
+ * @param {number} streak - Current daily streak count.
+ * @returns {{ text: string, type: 'warn'|'neutral'|'good' }}
+ */
 export function getContextualMessage(completedActions, streak) {
   const today = new Date().toISOString().split('T')[0];
   const todayCount = completedActions.filter(a => a.completedAt === today).length;

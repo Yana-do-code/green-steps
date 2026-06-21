@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import PropTypes from 'prop-types';
 import {
   Zap, Car, Salad, ShoppingBag, Filter,
   CheckCircle2, Bookmark, BookmarkCheck, Search,
@@ -48,6 +49,12 @@ function ImpactBar({ value, max = 2.5 }) {
     </div>
   );
 }
+
+/* ── Impact bar prop types ───────────────────────────────── */
+ImpactBar.propTypes = {
+  value: PropTypes.number.isRequired,
+  max:   PropTypes.number,
+};
 
 /* ── Single action card ───────────────────────────────────── */
 const ActionCard = memo(function ActionCard({ action, onToggleComplete, onToggleBookmark }) {
@@ -120,6 +127,24 @@ const ActionCard = memo(function ActionCard({ action, onToggleComplete, onToggle
     </div>
   );
 });
+
+ActionCard.propTypes = {
+  action:            PropTypes.shape({
+    id:          PropTypes.number.isRequired,
+    title:       PropTypes.string.isRequired,
+    description: PropTypes.string.isRequired,
+    category:    PropTypes.string.isRequired,
+    difficulty:  PropTypes.string.isRequired,
+    impact:      PropTypes.number.isRequired,
+    points:      PropTypes.number.isRequired,
+    tags:        PropTypes.arrayOf(PropTypes.string).isRequired,
+    duration:    PropTypes.string.isRequired,
+    completed:   PropTypes.bool.isRequired,
+    bookmarked:  PropTypes.bool.isRequired,
+  }).isRequired,
+  onToggleComplete:  PropTypes.func.isRequired,
+  onToggleBookmark:  PropTypes.func.isRequired,
+};
 
 /* ── Main Page ────────────────────────────────────────────── */
 const CATEGORIES   = ['All', 'Transport', 'Diet', 'Energy', 'Shopping'];

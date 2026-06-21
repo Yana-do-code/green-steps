@@ -1,14 +1,15 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { TrendingDown, Leaf, Flame, Target, ArrowRight, Sparkles, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import actionsData from '../data/actions';
+import PropTypes from 'prop-types';
 import { getRecommendations, getContextualMessage } from '../utils/recommendations';
+import { GLOBAL_AVG_FOOTPRINT as GLOBAL_AVG } from '../utils/constants';
 import './Dashboard.css';
 
 /* ── Constants ─────────────────────────────────────────────── */
-const GLOBAL_AVG      = 7.5;
 const TARGET_FOOTPRINT = 4.0;
 
 const CAT_COLORS = {
@@ -87,7 +88,16 @@ function StatCard({ label, value, unit, sub, icon: Icon, accent }) {
   );
 }
 
-function CustomTooltip({ active, payload, label }) {
+StatCard.propTypes = {
+  label:  PropTypes.string.isRequired,
+  value:  PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  unit:   PropTypes.string.isRequired,
+  sub:    PropTypes.string.isRequired,
+  icon:   PropTypes.elementType.isRequired,
+  accent: PropTypes.string,
+};
+
+const CustomTooltip = memo(function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="chart-tooltip">
@@ -99,10 +109,16 @@ function CustomTooltip({ active, payload, label }) {
       ))}
     </div>
   );
-}
+});
+
+CustomTooltip.propTypes = {
+  active:  PropTypes.bool,
+  payload: PropTypes.array,
+  label:   PropTypes.string,
+};
 
 /* ── Onboarding empty state ─────────────────────────────────── */
-function OnboardingState({ name }) {
+const OnboardingState = memo(function OnboardingState({ name }) {
   return (
     <div className="dashboard">
       <div className="container">
@@ -137,7 +153,11 @@ function OnboardingState({ name }) {
       </div>
     </div>
   );
-}
+});
+
+OnboardingState.propTypes = {
+  name: PropTypes.string.isRequired,
+};
 
 /* ── Main Dashboard ─────────────────────────────────────────── */
 export default function Dashboard() {

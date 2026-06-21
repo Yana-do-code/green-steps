@@ -2,8 +2,6 @@
 
 A smart, dynamic web application that helps users track their daily carbon footprint, receive personalised eco-action recommendations, and build sustainable habits over time.
 
-**Live Demo:** [green-steps.vercel.app](https://green-steps.vercel.app)
-
 ---
 
 ## Chosen Vertical
@@ -74,7 +72,7 @@ There is no backend server. All data is stored in Firebase under `users/{uid}/pr
 | Route | Description | Auth Required |
 |---|---|---|
 | `/` | Landing — hero, features, impact section, CTA | No |
-| `/login` | Sign in / Sign up with email or Google | No |
+| `/login` | Sign in / Sign up with email or Google | Yes |
 | `/calculator` | 4-step carbon footprint estimator | No |
 | `/dashboard` | Stats, smart suggestions, charts, recent activity | Yes |
 | `/insights` | Personalised insight cards, eco score, comparisons | Yes |

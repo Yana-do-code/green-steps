@@ -1,30 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Car, Zap, Salad, ShoppingBag, ArrowRight, ArrowLeft, RotateCcw, TrendingDown } from 'lucide-react';
+import { calcFootprint } from '../utils/calculator';
+import { GLOBAL_AVG_FOOTPRINT as GLOBAL_AVG, TARGET_FOOTPRINT as TARGET } from '../utils/constants';
 import './Calculator.css';
-
-/* ── Emission factors ───────────────────────────────────────── */
-function calcFootprint({ kmPerWeek, flights, homeSize, energyType, diet, shopping }) {
-  const transport = kmPerWeek * 52 * 0.00021;                          // avg car CO2/km
-  const aviation  = flights * 0.9;                                      // ~0.9t per return flight
-  const homeBase  = { small: 1.5, medium: 2.5, large: 4.0 }[homeSize];
-  const homeMulti = { gas: 1.0, mixed: 0.7, electric: 0.4 }[energyType];
-  const home      = homeBase * homeMulti;
-  const dietVal   = { daily: 2.5, sometimes: 1.5, vegetarian: 0.8, vegan: 0.4 }[diet];
-  const shopVal   = { high: 0.8, medium: 0.4, low: 0.1 }[shopping];
-  const total     = transport + aviation + home + dietVal + shopVal;
-  return {
-    total:     parseFloat(total.toFixed(1)),
-    transport: parseFloat(transport.toFixed(1)),
-    aviation:  parseFloat(aviation.toFixed(1)),
-    home:      parseFloat(home.toFixed(1)),
-    diet:      parseFloat(dietVal.toFixed(1)),
-    shopping:  parseFloat(shopVal.toFixed(1)),
-  };
-}
-
-const GLOBAL_AVG = 7.5;
-const TARGET     = 2.0;
 
 const STEPS = [
   { id: 'transport', label: 'Transport',    icon: Car },

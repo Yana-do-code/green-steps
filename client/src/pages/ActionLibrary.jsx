@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import {
   Zap, Car, Salad, ShoppingBag, Filter,
   CheckCircle2, Bookmark, BookmarkCheck, Search,
@@ -7,6 +7,16 @@ import {
 import { useAuth } from '../context/AuthContext';
 import actionsData from '../data/actions';
 import './ActionLibrary.css';
+
+/* ── Debounce hook ──────────────────────────────────────── */
+function useDebounce(value, delay = 250) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
 
 /* ── Category icon map ───────────────────────────────────── */
 const catIcons = {
@@ -40,7 +50,7 @@ function ImpactBar({ value, max = 2.5 }) {
 }
 
 /* ── Single action card ───────────────────────────────────── */
-function ActionCard({ action, onToggleComplete, onToggleBookmark }) {
+const ActionCard = memo(function ActionCard({ action, onToggleComplete, onToggleBookmark }) {
   const Icon = catIcons[action.category] || Zap;
   const catStyle  = catColors[action.category]  || catColors.Energy;
   const diffStyle = diffColors[action.difficulty] || diffColors.Easy;
@@ -109,7 +119,7 @@ function ActionCard({ action, onToggleComplete, onToggleBookmark }) {
       </div>
     </div>
   );
-}
+});
 
 /* ── Main Page ────────────────────────────────────────────── */
 const CATEGORIES   = ['All', 'Transport', 'Diet', 'Energy', 'Shopping'];
@@ -126,10 +136,11 @@ export default function ActionLibrary() {
   const [category,   setCategory]   = useState('All');
   const [difficulty, setDifficulty] = useState('All');
   const [sortBy,     setSortBy]     = useState('impact');
-  const [search,     setSearch]     = useState('');
+  const [searchRaw,  setSearchRaw]  = useState('');
   const [showBookmarked, setShowBookmarked] = useState(false);
 
-  const today = new Date().toISOString().split('T')[0];
+  const search = useDebounce(searchRaw, 250);
+  const today  = useMemo(() => new Date().toISOString().split('T')[0], []);
 
   const catalog = actionsData.filter(a =>
     (category   === 'All' || a.category   === category) &&
@@ -148,7 +159,7 @@ export default function ActionLibrary() {
     bookmarked: bookmarkedIds.has(a.id),
   }));
 
-  const handleComplete = (action) => {
+  const handleComplete = useCallback((action) => {
     updateProgress(prev => {
       const loggedToday = prev.completedActions.some(
         a => a.id === action.id && a.completedAt === today
@@ -169,29 +180,32 @@ export default function ActionLibrary() {
             ],
       };
     });
-  };
+  }, [today, updateProgress]);
 
-  const handleBookmark = (id) => {
+  const handleBookmark = useCallback((id) => {
     updateProgress(prev => ({
       ...prev,
       bookmarkedActions: prev.bookmarkedActions.includes(id)
         ? prev.bookmarkedActions.filter(x => x !== id)
         : [...prev.bookmarkedActions, id],
     }));
-  };
+  }, [updateProgress]);
 
-  const displayed = actions
-    .filter(a => !showBookmarked || a.bookmarked)
-    .filter(a => !search || a.title.toLowerCase().includes(search.toLowerCase()) || a.description.toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => {
-      if (sortBy === 'impact')     return b.impact - a.impact;
-      if (sortBy === 'points')     return b.points - a.points;
-      if (sortBy === 'difficulty') {
-        const order = { Easy: 0, Medium: 1, Hard: 2 };
-        return order[a.difficulty] - order[b.difficulty];
-      }
-      return 0;
-    });
+  const displayed = useMemo(() => {
+    const q = search.toLowerCase();
+    return actions
+      .filter(a => !showBookmarked || a.bookmarked)
+      .filter(a => !q || a.title.toLowerCase().includes(q) || a.description.toLowerCase().includes(q))
+      .sort((a, b) => {
+        if (sortBy === 'impact')     return b.impact - a.impact;
+        if (sortBy === 'points')     return b.points - a.points;
+        if (sortBy === 'difficulty') {
+          const order = { Easy: 0, Medium: 1, Hard: 2 };
+          return order[a.difficulty] - order[b.difficulty];
+        }
+        return 0;
+      });
+  }, [actions, showBookmarked, search, sortBy]);
 
   const completedCount = actions.filter(a => a.completed).length;  // logged today
   const totalImpact    = progress.completedActions.reduce((s, a) => s + a.impact, 0); // all-time
@@ -235,8 +249,8 @@ export default function ActionLibrary() {
               className="input al-search__input"
               placeholder="Search actions…"
               aria-label="Search actions"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
+              value={searchRaw}
+              onChange={e => setSearchRaw(e.target.value)}
             />
           </div>
 

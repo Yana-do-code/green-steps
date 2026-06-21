@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import ActionLibrary from '../pages/ActionLibrary';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,8 +10,13 @@ const mockUpdateProgress = vi.fn();
 const emptyProgress = { completedActions: [], bookmarkedActions: [] };
 
 beforeEach(() => {
+  vi.useFakeTimers();
   vi.clearAllMocks();
   useAuth.mockReturnValue({ progress: emptyProgress, updateProgress: mockUpdateProgress });
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 const renderLib = () => render(<MemoryRouter><ActionLibrary /></MemoryRouter>);
@@ -35,6 +40,7 @@ describe('ActionLibrary page', () => {
     renderLib();
     const before = screen.getAllByRole('button', { name: /log for today/i }).length;
     fireEvent.change(screen.getByLabelText(/search actions/i), { target: { value: 'solar' } });
+    act(() => vi.advanceTimersByTime(300));
     const after = screen.getAllByRole('button', { name: /log for today/i }).length;
     expect(after).toBeLessThan(before);
   });
@@ -42,6 +48,7 @@ describe('ActionLibrary page', () => {
   it('shows empty state when search has no matches', () => {
     renderLib();
     fireEvent.change(screen.getByLabelText(/search actions/i), { target: { value: 'xyzNOT_FOUND' } });
+    act(() => vi.advanceTimersByTime(300));
     expect(screen.getByText(/no actions found/i)).toBeInTheDocument();
   });
 

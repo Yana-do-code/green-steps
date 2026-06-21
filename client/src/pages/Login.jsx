@@ -21,7 +21,7 @@ const FIREBASE_ERRORS = {
 };
 
 function friendlyError(err) {
-  return FIREBASE_ERRORS[err?.code] ?? `Sign-in failed (${err?.code ?? 'unknown'}). Please try again.`;
+  return FIREBASE_ERRORS[err?.code] ?? 'Something went wrong. Please try again.';
 }
 
 export default function Login() {

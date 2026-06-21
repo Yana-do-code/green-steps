@@ -3,18 +3,19 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   updateProfile,
 } from 'firebase/auth';
-import { ref, get, set, update } from 'firebase/database';
+import { ref, get, set } from 'firebase/database';
 import { auth, db, googleProvider } from '../firebase';
 
 const AuthContext = createContext(null);
 
 const freshProgress = () => ({
-  completedActions:  [],  // [{ id, title, impact, category, completedAt }]
-  bookmarkedActions: [],  // [number]
+  completedActions:  [],
+  bookmarkedActions: [],
   joinedDate: new Date().toISOString().split('T')[0],
 });
 
@@ -45,8 +46,9 @@ export function AuthProvider({ children }) {
   const [progress, setProgress] = useState(freshProgress());
   const [loading,  setLoading]  = useState(true);
 
-  /* Listen for Firebase auth state changes */
   useEffect(() => {
+    getRedirectResult(auth).catch(() => {});
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser({ name: firebaseUser.displayName, email: firebaseUser.email, uid: firebaseUser.uid });
@@ -61,7 +63,6 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  /* Sign up with email + password */
   const signup = async (name, email, password) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, { displayName: name });
@@ -71,25 +72,16 @@ export function AuthProvider({ children }) {
     setProgress(fresh);
   };
 
-  /* Sign in with email + password */
   const login = async (email, password) => {
     await signInWithEmailAndPassword(auth, email, password);
-    // onAuthStateChanged handles setting user + progress
   };
 
-  /* Sign in with Google */
-  const loginWithGoogle = async () => {
-    const cred = await signInWithPopup(auth, googleProvider);
-    const prog = await loadOrCreateProgress(cred.user.uid);
-    setProgress(prog);
-  };
+  const loginWithGoogle = () => signInWithRedirect(auth, googleProvider);
 
-  /* Sign out */
   const logout = async () => {
     await signOut(auth);
   };
 
-  /* Update progress locally + persist to Realtime Database */
   const updateProgress = (updater) => {
     const firebaseUser = auth.currentUser;
     if (!firebaseUser) return;

@@ -1,7 +1,10 @@
+import { useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
-import { TrendingDown, Leaf, Flame, Target, ArrowRight } from 'lucide-react';
+import { TrendingDown, Leaf, Flame, Target, ArrowRight, Sparkles, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import actionsData from '../data/actions';
+import { getRecommendations, getContextualMessage } from '../utils/recommendations';
 import './Dashboard.css';
 
 /* ── Constants ─────────────────────────────────────────────── */
@@ -9,10 +12,10 @@ const GLOBAL_AVG      = 7.5;
 const TARGET_FOOTPRINT = 4.0;
 
 const CAT_COLORS = {
-  Transport: '#006c49',
-  Diet:      '#006a61',
-  Energy:    '#2b6954',
-  Shopping:  '#10b981',
+  Transport: '#3b82f6',
+  Diet:      '#f59e0b',
+  Energy:    '#10b981',
+  Shopping:  '#8b5cf6',
 };
 const CAT_ICONS = { Transport: '🚗', Diet: '🥗', Energy: '⚡', Shopping: '🛍️' };
 const catClass   = { Transport: 'chip-transport', Diet: 'chip-diet', Energy: 'chip-energy', Shopping: 'chip-shopping' };
@@ -117,8 +120,8 @@ function OnboardingState({ name }) {
           <div className="db-onboarding__icon">🌱</div>
           <h2 className="headline-md">No actions logged yet</h2>
           <p style={{ color: 'var(--color-on-surface-variant)', marginTop: 8, marginBottom: 24 }}>
-            Head to the Action Library, mark actions as complete, and your dashboard will
-            show your real CO₂ savings, streak, and progress toward the 4t target.
+            Head to the Action Library and log what you did today. Come back daily — your
+            dashboard will track your CO₂ savings, streak, and progress toward the 4t target.
           </p>
           <Link to="/actions" className="btn btn-primary">
             Browse Actions <ArrowRight size={16} />
@@ -138,23 +141,57 @@ function OnboardingState({ name }) {
 
 /* ── Main Dashboard ─────────────────────────────────────────── */
 export default function Dashboard() {
-  const { user: authUser, progress } = useAuth();
+  const { user: authUser, progress, updateProgress } = useAuth();
   const { completedActions } = progress;
+
+  const quickLog = (action) => {
+    const today = new Date().toISOString().split('T')[0];
+    updateProgress(prev => {
+      if (prev.completedActions.some(a => a.id === action.id && a.completedAt === today))
+        return prev;
+      return {
+        ...prev,
+        completedActions: [...prev.completedActions, {
+          id: action.id, title: action.title, impact: action.impact,
+          category: action.category, completedAt: today,
+        }],
+      };
+    });
+  };
 
   if (!completedActions.length) {
     return <OnboardingState name={authUser?.name ?? 'there'} />;
   }
 
-  const totalOffset      = completedActions.reduce((s, a) => s + a.impact, 0);
-  const currentFootprint = parseFloat(Math.max(GLOBAL_AVG - totalOffset, 1.0).toFixed(1));
-  const pctDone          = Math.min(Math.round(((GLOBAL_AVG - currentFootprint) / (GLOBAL_AVG - TARGET_FOOTPRINT)) * 100), 100);
-  const streak           = computeStreak(completedActions);
-  const level            = computeLevel(totalOffset);
-  const breakdown        = computeBreakdown(completedActions);
-  const savingsTimeline  = computeSavingsTimeline(completedActions);
-  const recentActions    = [...completedActions]
-    .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
-    .slice(0, 4);
+  const today = new Date().toISOString().split('T')[0];
+
+  const totalOffset = useMemo(
+    () => completedActions.reduce((s, a) => s + a.impact, 0),
+    [completedActions],
+  );
+  const currentFootprint = useMemo(
+    () => parseFloat(Math.max(GLOBAL_AVG - totalOffset, 1.0).toFixed(1)),
+    [totalOffset],
+  );
+  const pctDone = useMemo(
+    () => Math.min(Math.round(((GLOBAL_AVG - currentFootprint) / (GLOBAL_AVG - TARGET_FOOTPRINT)) * 100), 100),
+    [currentFootprint],
+  );
+  const streak  = useMemo(() => computeStreak(completedActions), [completedActions]);
+  const level   = useMemo(() => computeLevel(totalOffset),       [totalOffset]);
+
+  const breakdown       = useMemo(() => computeBreakdown(completedActions),      [completedActions]);
+  const savingsTimeline = useMemo(() => computeSavingsTimeline(completedActions), [completedActions]);
+  const recentActions   = useMemo(
+    () => [...completedActions].sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt)).slice(0, 4),
+    [completedActions],
+  );
+  const todayLoggedIds  = useMemo(
+    () => new Set(completedActions.filter(a => a.completedAt === today).map(a => a.id)),
+    [completedActions, today],
+  );
+  const suggestions  = useMemo(() => getRecommendations(completedActions, actionsData), [completedActions]);
+  const ctxMessage   = useMemo(() => getContextualMessage(completedActions, streak),    [completedActions, streak]);
 
   return (
     <div className="dashboard">
@@ -171,6 +208,9 @@ export default function Dashboard() {
                 · 🔥 {streak}-day streak · {totalOffset.toFixed(1)}t CO₂ offset total
               </span>
             </p>
+            <p className={`db-ctx-msg db-ctx-msg--${ctxMessage.type}`}>
+              {ctxMessage.text}
+            </p>
           </div>
           <div className="db-header__actions">
             <Link to="/actions" className="btn btn-primary btn-sm">
@@ -185,6 +225,41 @@ export default function Dashboard() {
           <StatCard label="Current Footprint"  value={currentFootprint}       unit="t CO₂e/yr"  sub={`vs ${GLOBAL_AVG}t global avg`} icon={TrendingDown} accent="var(--color-tertiary)" />
           <StatCard label="Target Footprint"   value={TARGET_FOOTPRINT}       unit="t CO₂e/yr"  sub="Sustainable goal"           icon={Target}      accent="#2b6954" />
           <StatCard label="Streak"             value={streak}                 unit=" days"       sub="Consecutive eco actions"    icon={Flame}       accent="#e67e22" />
+        </div>
+
+        {/* ── Smart Suggestions ────────────────────────── */}
+        <div className="card card-p db-suggestions animate-fade-up delay-200">
+          <div className="db-suggestions__header">
+            <Sparkles size={16} color="var(--color-primary)" />
+            <h3 className="headline-md">Suggested for You</h3>
+            <span className="label-sm db-suggestions__sub">Based on your habits &amp; impact</span>
+          </div>
+          {suggestions.length === 0 ? (
+            <p style={{ color: 'var(--color-on-surface-variant)', fontSize: 14 }}>
+              Great job — you've logged all top actions today! 🎉
+            </p>
+          ) : (
+            <div className="db-suggestions__list">
+              {suggestions.map(action => (
+                <div key={action.id} className="db-suggestions__item">
+                  <div className="db-suggestions__info">
+                    <span className={`chip chip-${action.category.toLowerCase()}`}>{action.category}</span>
+                    <span className="db-suggestions__title">{action.title}</span>
+                  </div>
+                  <div className="db-suggestions__right">
+                    <span className="db-recent__impact">-{action.impact}t/yr</span>
+                    {todayLoggedIds.has(action.id) ? (
+                      <span className="db-suggestions__logged">Logged ✓</span>
+                    ) : (
+                      <button className="btn btn-primary btn-sm" onClick={() => quickLog(action)}>
+                        <Zap size={13} /> Log Now
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ── Progress to target ───────────────────────── */}

@@ -18,11 +18,22 @@ const freshProgress = () => ({
   joinedDate: new Date().toISOString().split('T')[0],
 });
 
+function toArray(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  return Object.values(val);
+}
+
 async function loadOrCreateProgress(uid) {
   const userRef = ref(db, `users/${uid}/progress`);
   const snap    = await get(userRef);
   if (snap.exists()) {
-    return snap.val();
+    const data = snap.val();
+    return {
+      ...data,
+      completedActions:  toArray(data.completedActions),
+      bookmarkedActions: toArray(data.bookmarkedActions),
+    };
   }
   const fresh = freshProgress();
   await set(userRef, fresh);

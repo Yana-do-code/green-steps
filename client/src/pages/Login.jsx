@@ -74,12 +74,18 @@ export default function Login() {
         </Link>
 
         {/* Tabs */}
-        <div className="login-tabs">
+        <div className="login-tabs" role="tablist">
           <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'signin'}
             className={`login-tab${tab === 'signin' ? ' login-tab--active' : ''}`}
             onClick={() => { setTab('signin'); setError(''); }}
           >Sign In</button>
           <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'signup'}
             className={`login-tab${tab === 'signup' ? ' login-tab--active' : ''}`}
             onClick={() => { setTab('signup'); setError(''); }}
           >Sign Up</button>
@@ -107,20 +113,22 @@ export default function Login() {
         <form className="login-form" onSubmit={handleSubmit} noValidate>
           {tab === 'signup' && (
             <div className="login-field">
-              <label className="login-label label-sm">Full Name</label>
-              <input className="input login-input" type="text" placeholder="Your name" value={form.name} onChange={set('name')} />
+              <label htmlFor="login-name" className="login-label label-sm">Full Name</label>
+              <input id="login-name" className="input login-input" type="text" placeholder="Your name" value={form.name} onChange={set('name')} autoComplete="name" />
             </div>
           )}
           <div className="login-field">
-            <label className="login-label label-sm">Email Address</label>
-            <input className="input login-input" type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} />
+            <label htmlFor="login-email" className="login-label label-sm">Email Address</label>
+            <input id="login-email" className="input login-input" type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} autoComplete="email" />
           </div>
           <div className="login-field">
-            <label className="login-label label-sm">Password</label>
-            <input className="input login-input" type="password" placeholder={tab === 'signup' ? 'Min. 6 characters' : '••••••••'} value={form.password} onChange={set('password')} />
+            <label htmlFor="login-password" className="login-label label-sm">Password</label>
+            <input id="login-password" className="input login-input" type="password" placeholder={tab === 'signup' ? 'Min. 6 characters' : '••••••••'} value={form.password} onChange={set('password')} autoComplete={tab === 'signup' ? 'new-password' : 'current-password'} />
           </div>
 
-          {error && <p className="login-error">{error}</p>}
+          <p role="alert" aria-live="polite" className={error ? 'login-error' : ''} style={{ minHeight: '1.25rem' }}>
+            {error}
+          </p>
 
           <button type="submit" className="btn btn-primary login-submit" disabled={busy}>
             {busy ? 'Please wait…' : tab === 'signin' ? 'Sign In' : 'Create Account'}

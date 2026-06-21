@@ -45,20 +45,22 @@ export default function Navbar() {
 
         {/* Desktop links */}
         <ul className="navbar__links">
-          {navItems.map(({ to, label, icon: Icon }) => (
-            <li key={to}>
-              <NavLink
-                to={to}
-                end={to === '/'}
-                className={({ isActive }) =>
-                  `navbar__link${isActive ? ' navbar__link--active' : ''}`
-                }
-              >
-                <Icon size={16} strokeWidth={2} />
-                {label}
-              </NavLink>
-            </li>
-          ))}
+          {navItems
+            .filter(({ to }) => to === '/' || user)
+            .map(({ to, label, icon: Icon }) => (
+              <li key={to}>
+                <NavLink
+                  to={to}
+                  end={to === '/'}
+                  className={({ isActive }) =>
+                    `navbar__link${isActive ? ' navbar__link--active' : ''}`
+                  }
+                >
+                  <Icon size={16} strokeWidth={2} />
+                  {label}
+                </NavLink>
+              </li>
+            ))}
         </ul>
 
         {/* CTA / User area */}
@@ -86,9 +88,12 @@ export default function Navbar() {
 
         {/* Mobile hamburger */}
         <button
+          type="button"
           className="navbar__hamburger"
           onClick={() => setOpen(o => !o)}
-          aria-label="Toggle menu"
+          aria-label="Toggle navigation menu"
+          aria-expanded={open}
+          aria-controls="mobile-menu"
         >
           {open ? <X size={22} /> : <Menu size={22} />}
         </button>
@@ -96,20 +101,22 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="navbar__mobile">
-          {navItems.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === '/'}
-              className={({ isActive }) =>
-                `navbar__mobile-link${isActive ? ' navbar__mobile-link--active' : ''}`
-              }
-            >
-              <Icon size={18} strokeWidth={2} />
-              {label}
-            </NavLink>
-          ))}
+        <div id="mobile-menu" className="navbar__mobile">
+          {navItems
+            .filter(({ to }) => to === '/' || user)
+            .map(({ to, label, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={to === '/'}
+                className={({ isActive }) =>
+                  `navbar__mobile-link${isActive ? ' navbar__mobile-link--active' : ''}`
+                }
+              >
+                <Icon size={18} strokeWidth={2} />
+                {label}
+              </NavLink>
+            ))}
           {user ? (
             <>
               <NavLink to="/dashboard" className="btn btn-primary" style={{ marginTop: 8 }}>

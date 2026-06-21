@@ -209,12 +209,14 @@ export default function Insights() {
         </div>
 
         {/* ── Filter pills ─────────────────────────────── */}
-        <div className="ins-filters animate-fade-up delay-100">
+        <div className="ins-filters animate-fade-up delay-100" role="group" aria-label="Filter insights">
           {filters.map(f => (
             <button
               key={f}
+              type="button"
               className={`ins-filter-pill${activeFilter === f ? ' ins-filter-pill--active' : ''}`}
               onClick={() => setFilter(f)}
+              aria-pressed={activeFilter === f}
             >
               {f === 'all' ? '✦ All' : insightConfig[f]?.label}
             </button>

@@ -63,9 +63,11 @@ function ActionCard({ action, onToggleComplete, onToggleBookmark }) {
             </span>
           </div>
           <button
+            type="button"
             className={`action-card__bookmark${action.bookmarked ? ' action-card__bookmark--active' : ''}`}
             onClick={() => onToggleBookmark(action.id)}
-            aria-label="Bookmark action"
+            aria-label={action.bookmarked ? 'Remove bookmark' : 'Bookmark this action'}
+            aria-pressed={action.bookmarked}
           >
             {action.bookmarked ? <BookmarkCheck size={17} /> : <Bookmark size={17} />}
           </button>
@@ -97,14 +99,12 @@ function ActionCard({ action, onToggleComplete, onToggleBookmark }) {
             </div>
           </div>
         </div>
-        <ImpactBar value={action.impact} />
-
         <button
           className={`action-card__complete btn${action.completed ? ' action-card__complete--done' : ' btn-primary'}`}
           onClick={() => onToggleComplete(action)}
         >
           <CheckCircle2 size={16} />
-          {action.completed ? 'Completed ✓' : 'Mark Complete'}
+          {action.completed ? 'Logged Today ✓' : 'Log for Today'}
         </button>
       </div>
     </div>
@@ -129,28 +129,34 @@ export default function ActionLibrary() {
   const [search,     setSearch]     = useState('');
   const [showBookmarked, setShowBookmarked] = useState(false);
 
+  const today = new Date().toISOString().split('T')[0];
+
   const catalog = actionsData.filter(a =>
     (category   === 'All' || a.category   === category) &&
     (difficulty === 'All' || a.difficulty === difficulty)
   );
 
-  /* Merge catalog with user's personal progress */
-  const completedIds  = new Set(progress.completedActions.map(a => a.id));
+  /* Merge catalog with user's progress — "completed" means logged TODAY */
+  const todayLoggedIds = new Set(
+    progress.completedActions.filter(a => a.completedAt === today).map(a => a.id)
+  );
   const bookmarkedIds = new Set(progress.bookmarkedActions);
 
   const actions = catalog.map(a => ({
     ...a,
-    completed:  completedIds.has(a.id),
+    completed:  todayLoggedIds.has(a.id),
     bookmarked: bookmarkedIds.has(a.id),
   }));
 
   const handleComplete = (action) => {
     updateProgress(prev => {
-      const alreadyDone = prev.completedActions.some(a => a.id === action.id);
+      const loggedToday = prev.completedActions.some(
+        a => a.id === action.id && a.completedAt === today
+      );
       return {
         ...prev,
-        completedActions: alreadyDone
-          ? prev.completedActions.filter(a => a.id !== action.id)
+        completedActions: loggedToday
+          ? prev.completedActions.filter(a => !(a.id === action.id && a.completedAt === today))
           : [
               ...prev.completedActions,
               {
@@ -158,7 +164,7 @@ export default function ActionLibrary() {
                 title: action.title,
                 impact: action.impact,
                 category: action.category,
-                completedAt: new Date().toISOString().split('T')[0],
+                completedAt: today,
               },
             ],
       };
@@ -187,8 +193,8 @@ export default function ActionLibrary() {
       return 0;
     });
 
-  const completedCount = actions.filter(a => a.completed).length;
-  const totalImpact    = progress.completedActions.reduce((s, a) => s + a.impact, 0);
+  const completedCount = actions.filter(a => a.completed).length;  // logged today
+  const totalImpact    = progress.completedActions.reduce((s, a) => s + a.impact, 0); // all-time
 
   return (
     <div className="action-lib">
@@ -208,13 +214,13 @@ export default function ActionLibrary() {
             <div className="al-progress-summary__row">
               <CheckCircle2 size={18} color="var(--color-primary)" />
               <span className="al-progress-summary__val">{completedCount}/{catalog.length}</span>
-              <span className="al-progress-summary__lbl">Actions Done</span>
+              <span className="al-progress-summary__lbl">Logged Today</span>
             </div>
             <div className="progress-track" style={{ height: 8 }}>
               <div className="progress-fill" style={{ width: `${catalog.length ? (completedCount / catalog.length) * 100 : 0}%` }} />
             </div>
             <div className="al-progress-summary__impact">
-              <TrendingDown size={14} /> <strong>{totalImpact.toFixed(1)}t</strong> CO₂e saved so far
+              <TrendingDown size={14} /> <strong>{totalImpact.toFixed(1)}t</strong> CO₂e saved all time
             </div>
           </div>
         </div>
@@ -222,22 +228,26 @@ export default function ActionLibrary() {
         {/* ── Toolbar ─────────────────────────────────── */}
         <div className="al-toolbar animate-fade-up delay-100">
           <div className="al-search">
-            <Search size={16} className="al-search__icon" />
+            <Search size={16} className="al-search__icon" aria-hidden="true" />
             <input
+              id="al-search"
               type="text"
               className="input al-search__input"
               placeholder="Search actions…"
+              aria-label="Search actions"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
           </div>
 
-          <div className="al-filter-group">
+          <div className="al-filter-group" role="group" aria-label="Filter by category">
             {CATEGORIES.map(c => (
               <button
                 key={c}
+                type="button"
                 className={`ins-filter-pill${category === c ? ' ins-filter-pill--active' : ''}`}
                 onClick={() => setCategory(c)}
+                aria-pressed={category === c}
               >
                 {catIcons[c] ? (() => { const I = catIcons[c]; return <I size={13} />; })() : null}
                 {c}

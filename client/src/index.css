@@ -3,6 +3,31 @@
    Based on DESIGN.md spec
    ───────────────────────────────────────────── */
 
+/* Accessibility */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  padding: 8px 16px;
+  background: var(--color-primary, #006c49);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 9999;
+  border-radius: 0 0 6px 0;
+  text-decoration: none;
+  transition: top 0.1s;
+}
+.skip-link:focus {
+  top: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary, #006c49);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
 :root {
   /* Colors */
   --color-primary:            #006c49;

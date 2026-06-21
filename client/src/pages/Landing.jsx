@@ -1,37 +1,61 @@
-import { useEffect, useState, useRef } from 'react';
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, useInView } from 'framer-motion';
 import {
   Leaf, ArrowRight, CheckCircle2, Zap, BarChart3,
-  Users, Globe2, Award, ChevronDown, TrendingDown, Activity
+  Users, Globe2, Award, TrendingDown, Activity, Shield
 } from 'lucide-react';
 import './Landing.css';
 
-/* ── Counter animation hook ─────────────────────────────── */
-function useCountUp(target, duration = 2000, start = false) {
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    if (!start) return;
-    let startTime = null;
-    const step = (ts) => {
-      if (!startTime) startTime = ts;
-      const progress = Math.min((ts - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setVal(Math.floor(eased * target));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [target, duration, start]);
-  return val;
+/* ── Animation variants ─────────────────────────────────── */
+const fadeUp = {
+  hidden: { opacity: 0, y: 28 },
+  visible: (i = 0) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94], delay: i * 0.1 }
+  }),
+};
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
+};
+
+
+/* ── Scroll-reveal wrapper ──────────────────────────────── */
+function Reveal({ children, delay = 0, className = '' }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: '-60px' });
+  return (
+    <motion.div ref={ref} className={className}
+      initial="hidden" animate={inView ? 'visible' : 'hidden'}
+      variants={fadeUp} custom={delay}>
+      {children}
+    </motion.div>
+  );
 }
 
-/* ── Stat item component ────────────────────────────────── */
-function StatItem({ value, suffix, label, inView }) {
-  const count = useCountUp(value, 2000, inView);
+/* ── Animated counter ───────────────────────────────────── */
+function AnimatedCounter({ value, suffix, label }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
   return (
-    <div className="stats__item">
-      <div className="stats__value">
-        {count.toLocaleString()}<span className="stats__suffix">{suffix}</span>
-      </div>
+    <div className="stats__item" ref={ref}>
+      <motion.div
+        className="stats__value"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={inView ? { opacity: 1, scale: 1 } : {}}
+        transition={{ duration: 0.5, ease: 'backOut' }}
+      >
+        <motion.span
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          {value}
+        </motion.span>
+        <span className="stats__suffix">{suffix}</span>
+      </motion.div>
       <div className="label-sm stats__label">{label}</div>
     </div>
   );
@@ -41,120 +65,264 @@ const features = [
   {
     icon: Activity,
     title: 'Real-time Tracking',
-    description: 'Connect your utility accounts and lifestyle apps to visualize your carbon impact as it happens, not months later.',
+    description: 'Visualize your carbon impact as it happens. Connect daily habits and see your footprint shift in real time.',
     items: ['Automatic Data Sync', 'Comparative Benchmarking'],
     color: '#006c49',
+    gradient: 'from-emerald-50 to-transparent',
   },
   {
     icon: BarChart3,
     title: 'Personalized Insights',
-    description: 'Our AI-driven engine analyzes your habits to suggest the most effective, least disruptive changes for your unique life.',
+    description: 'Our engine analyzes your habits to surface the most effective, least disruptive changes for your lifestyle.',
     items: ['AI Behavioral Analysis', 'Impact Forecasting'],
     color: '#006a61',
+    gradient: 'from-teal-50 to-transparent',
   },
   {
     icon: Zap,
     title: 'Actionable Steps',
-    description: 'Turn awareness into agency with simple, gamified tasks designed to reduce CO2 emissions across travel, diet, and home.',
+    description: 'Turn awareness into agency with gamified missions across travel, diet, energy, and shopping.',
     items: ['Gamified Missions', 'Reward Integration'],
     color: '#2b6954',
+    gradient: 'from-green-50 to-transparent',
   },
 ];
 
+const impactMetrics = [
+  { icon: TrendingDown, val: '40%', label: 'Average Footprint Reduction' },
+  { icon: Globe2,       val: '2t',  label: 'Sustainable Annual Target' },
+  { icon: Award,        val: '14d', label: 'Average Streak to Form Habits' },
+];
 
+/* ── Hero preview card ──────────────────────────────────── */
+const previewSteps = [
+  { label: 'Track your daily actions', icon: '🚗' },
+  { label: 'See your CO₂ impact',      icon: '📊' },
+  { label: 'Build eco-friendly habits', icon: '🌱' },
+];
+
+function HeroPreviewCard() {
+  const circumference = 2 * Math.PI * 44;
+  return (
+    <motion.div
+      className="hero__preview-card"
+      initial={{ opacity: 0, x: 40, scale: 0.96 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      transition={{ duration: 0.7, delay: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+    >
+      {/* Card header */}
+      <div className="hpc__header">
+        <div className="hpc__dot hpc__dot--pulse" />
+        <span className="hpc__live">Your Dashboard</span>
+        <Link to="/login" className="hpc__date hpc__date--link">Sign in to start →</Link>
+      </div>
+
+      {/* Footprint ring — empty state */}
+      <div className="hpc__ring-wrap">
+        <svg viewBox="0 0 100 100" width="110" height="110">
+          <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(0,108,73,0.1)" strokeWidth="8" />
+          <motion.circle
+            cx="50" cy="50" r="44" fill="none"
+            stroke="url(#ringGrad)" strokeWidth="8" strokeLinecap="round"
+            strokeDasharray={circumference}
+            initial={{ strokeDashoffset: circumference }}
+            animate={{ strokeDashoffset: circumference * 0.85 }}
+            transition={{ duration: 1.4, delay: 0.8, ease: 'easeOut' }}
+            transform="rotate(-90 50 50)"
+          />
+          <defs>
+            <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#006c49" />
+              <stop offset="100%" stopColor="#10b981" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div className="hpc__ring-label">
+          <motion.span
+            className="hpc__ring-val"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+          >—</motion.span>
+          <small>your footprint</small>
+        </div>
+      </div>
+
+      {/* Feature steps */}
+      <div className="hpc__actions">
+        {previewSteps.map((s, i) => (
+          <motion.div
+            key={s.label}
+            className="hpc__action hpc__action--step"
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 1.0 + i * 0.15 }}
+          >
+            <span className="hpc__step-icon">{s.icon}</span>
+            <span>{s.label}</span>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* CTA hint */}
+      <motion.div
+        className="hpc__cta-hint"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.6 }}
+      >
+        <Leaf size={13} /> Log actions daily to grow your impact
+      </motion.div>
+
+    </motion.div>
+  );
+}
+
+/* ── Main component ─────────────────────────────────────── */
 export default function Landing() {
-  const [statsVisible, setStatsVisible] = useState(false);
-  const statsRef = useRef(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setStatsVisible(true); },
-      { threshold: 0.3 }
-    );
-    if (statsRef.current) observer.observe(statsRef.current);
-    return () => observer.disconnect();
-  }, []);
+  const featuresRef = useRef(null);
+  const featuresInView = useInView(featuresRef, { once: true, margin: '-80px' });
 
   return (
     <div className="landing">
+
       {/* ── Hero ─────────────────────────────────────────── */}
       <section className="hero">
-        {/* Organic blobs */}
-        <div className="blob hero__blob1" />
-        <div className="blob hero__blob2" />
-
-        <div className="container hero__content">
-          <h1 className="display-lg hero__headline animate-fade-up delay-100">
-            Your Journey to a<br />
-            <span className="hero__headline-accent">Lighter Footprint</span>
-            <br />Starts Here
-          </h1>
-
-          <p className="hero__sub animate-fade-up delay-200">
-            Empower your sustainable journey with GreenSteps. Track your footprint,
-            discover personalized carbon-cutting strategies, and contribute to a
-            healthier planet—one step at a time.
-          </p>
-
-          <div className="hero__actions animate-fade-up delay-300">
-            <Link to="/dashboard" className="btn btn-primary btn-lg hero__cta-primary">
-              Start Tracking Free
-              <ArrowRight size={18} />
-            </Link>
-            <Link to="/actions" className="btn btn-secondary btn-lg">
-              Explore Actions
-            </Link>
-          </div>
-
-          {/* Live momentum card */}
-          <div className="hero__momentum animate-fade-up delay-400">
-            <div className="hero__momentum-label label-sm">Live Momentum</div>
-            <div className="hero__momentum-bar">
-              <div className="progress-track" style={{ flex: 1 }}>
-                <div className="progress-fill" style={{ width: '84%' }} />
-              </div>
-              <span className="hero__momentum-pct">84%</span>
-            </div>
-            <div className="hero__momentum-sub">Community target reached this month</div>
-          </div>
+        <div className="hero__bg-mesh" aria-hidden="true">
+          <div className="blob hero__blob1" />
+          <div className="blob hero__blob2" />
+          <div className="hero__grid-lines" />
         </div>
 
+        <div className="container hero__layout">
+          {/* Left: copy */}
+          <div className="hero__copy">
+            <motion.div
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.05 }}
+              className="hero__eyebrow"
+            >
+              <Leaf size={14} strokeWidth={2.5} />
+              Carbon Footprint Tracker
+            </motion.div>
+
+            <motion.h1
+              className="display-lg hero__headline"
+              initial="hidden"
+              animate="visible"
+              variants={stagger}
+            >
+              {['Your Journey to a', 'Lighter Footprint', 'Starts Here'].map((line, i) => (
+                <motion.span key={line} variants={fadeUp} custom={i} className="hero__headline-line">
+                  {i === 1
+                    ? <span className="hero__headline-accent">{line}</span>
+                    : line}
+                  <br />
+                </motion.span>
+              ))}
+            </motion.h1>
+
+            <motion.p
+              className="hero__sub"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.45 }}
+            >
+              Track your footprint, discover personalized carbon-cutting strategies,
+              and contribute to a healthier planet—one step at a time.
+            </motion.p>
+
+            <motion.div
+              className="hero__actions"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.55 }}
+            >
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                <Link to="/login" className="btn btn-primary btn-lg hero__cta-primary">
+                  Start Tracking Free
+                  <ArrowRight size={18} />
+                </Link>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                <Link to="/calculator" className="btn btn-secondary btn-lg">
+                  Carbon Calculator
+                </Link>
+              </motion.div>
+            </motion.div>
+
+            <motion.div
+              className="hero__trust"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              {[
+                { icon: Shield, text: 'No credit card required' },
+                { icon: Leaf,   text: 'Free forever' },
+              ].map(({ icon: Icon, text }) => (
+                <span key={text} className="hero__trust-badge">
+                  <Icon size={13} strokeWidth={2.2} /> {text}
+                </span>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Right: live preview card */}
+          <div className="hero__preview">
+            <HeroPreviewCard />
+          </div>
+        </div>
       </section>
 
-      {/* ── Stats Bar ────────────────────────────────────── */}
-      <section className="stats" ref={statsRef} id="stats">
+      {/* ── Stats bar ────────────────────────────────────── */}
+      <section className="stats">
         <div className="container stats__grid">
-          <StatItem value={45200}  suffix="+"    label="Active Stewards"    inView={statsVisible} />
-          <StatItem value={1200000} suffix="t"   label="Tonnes CO₂ Offset"  inView={statsVisible} />
-          <StatItem value={850}    suffix=""     label="Green Partners"      inView={statsVisible} />
-          <StatItem value={312000} suffix="+"    label="Actions Completed"   inView={statsVisible} />
+          <AnimatedCounter value="1.2M+"  suffix="" label="Tonnes CO₂ Offset" />
+          <AnimatedCounter value="850+"   suffix="" label="Green Partners" />
+          <AnimatedCounter value="312K+"  suffix="" label="Actions Completed" />
         </div>
       </section>
 
       {/* ── Features ─────────────────────────────────────── */}
       <section className="features" id="features">
         <div className="container">
-          <div className="section-header">
+          <Reveal className="section-header">
             <span className="label-sm section-eyebrow">How It Works</span>
-            <h2 className="headline-md section-title">
-              Everything you need to take control
-            </h2>
+            <h2 className="headline-md section-title">Everything you need to take control</h2>
             <p className="section-desc">
               We provide the tools and data you need to make informed decisions
               that benefit both your lifestyle and the environment.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="features__grid">
-            {features.map(({ icon: Icon, title, description, items, color }, i) => (
-              <div
+          <motion.div
+            ref={featuresRef}
+            className="features__grid"
+            initial="hidden"
+            animate={featuresInView ? 'visible' : 'hidden'}
+            variants={stagger}
+          >
+            {features.map(({ icon: Icon, title, description, items, color }) => (
+              <motion.div
                 key={title}
-                className="feature-card card card-p animate-fade-up"
-                style={{ animationDelay: `${i * 0.15}s` }}
+                className="feature-card card card-p"
+                variants={fadeUp}
+                whileHover={{
+                  y: -8,
+                  boxShadow: '0 20px 48px rgba(0,108,73,0.14)',
+                  borderColor: 'rgba(0,108,73,0.28)',
+                  transition: { duration: 0.22, ease: 'easeOut' },
+                }}
               >
-                <div className="feature-card__icon" style={{ background: `${color}18`, color }}>
+                <motion.div
+                  className="feature-card__icon"
+                  style={{ background: `${color}18`, color }}
+                  whileHover={{ rotate: [0, -8, 8, 0], transition: { duration: 0.4 } }}
+                >
                   <Icon size={24} strokeWidth={1.8} />
-                </div>
+                </motion.div>
                 <h3 className="headline-md feature-card__title">{title}</h3>
                 <p className="feature-card__desc">{description}</p>
                 <ul className="feature-card__list">
@@ -165,17 +333,18 @@ export default function Landing() {
                     </li>
                   ))}
                 </ul>
-              </div>
+                <div className="feature-card__glow" style={{ background: `${color}08` }} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* ── Impact Visual ─────────────────────────────────── */}
-      <section className="impact">
+      {/* ── Impact ───────────────────────────────────────── */}
+      <section className="impact" id="impact">
         <div className="blob impact__blob" />
         <div className="container impact__inner">
-          <div className="impact__text">
+          <Reveal className="impact__text">
             <span className="label-sm section-eyebrow">Why It Matters</span>
             <h2 className="display-lg impact__title">
               Small steps,
@@ -187,66 +356,99 @@ export default function Landing() {
               guided by real data.
             </p>
             <div className="impact__metrics">
-              {[
-                { icon: TrendingDown, val: '40%', label: 'Average Footprint Reduction' },
-                { icon: Globe2,       val: '2t',  label: 'Sustainable Annual Target' },
-                { icon: Award,        val: '14d', label: 'Average Streak to Form Habits' },
-              ].map(({ icon: Icon, val, label }) => (
-                <div key={label} className="impact__metric">
-                  <div className="impact__metric-icon">
-                    <Icon size={20} strokeWidth={1.8} />
-                  </div>
-                  <div>
-                    <div className="impact__metric-val">{val}</div>
-                    <div className="label-sm impact__metric-label">{label}</div>
-                  </div>
-                </div>
+              {impactMetrics.map(({ icon: Icon, val, label }, i) => (
+                <Reveal key={label} delay={i * 0.12}>
+                  <motion.div className="impact__metric" whileHover={{ x: 6 }} transition={{ duration: 0.2 }}>
+                    <motion.div
+                      className="impact__metric-icon"
+                      whileHover={{ scale: 1.15 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Icon size={20} strokeWidth={1.8} />
+                    </motion.div>
+                    <div>
+                      <div className="impact__metric-val">{val}</div>
+                      <div className="label-sm impact__metric-label">{label}</div>
+                    </div>
+                  </motion.div>
+                </Reveal>
               ))}
             </div>
-            <Link to="/dashboard" className="btn btn-primary btn-lg" style={{ marginTop: 8 }}>
-              View My Impact <ArrowRight size={18} />
-            </Link>
-          </div>
+            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} style={{ display: 'inline-block', marginTop: 8 }}>
+              <Link to="/login" className="btn btn-primary btn-lg">
+                View My Impact <ArrowRight size={18} />
+              </Link>
+            </motion.div>
+          </Reveal>
 
-          <div className="impact__visual animate-float">
-            <div className="impact__circle-outer">
-              <div className="impact__circle-mid">
-                <div className="impact__circle-inner animate-pulse-g">
-                  <Leaf size={48} color="white" strokeWidth={1.5} />
-                  <span>5.8t</span>
-                  <small>Your footprint</small>
-                </div>
-              </div>
+          {/* Orbital ring visual */}
+          <div className="impact__visual">
+            <div className="impact__orbit-wrap">
+              <motion.div
+                className="impact__orbit impact__orbit--lg"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
+              />
+              <motion.div
+                className="impact__orbit impact__orbit--md"
+                animate={{ rotate: -360 }}
+                transition={{ duration: 28, repeat: Infinity, ease: 'linear' }}
+              >
+                <div className="impact__orbit-dot impact__orbit-dot--1" />
+              </motion.div>
+              <motion.div
+                className="impact__orbit impact__orbit--sm"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
+              >
+                <div className="impact__orbit-dot impact__orbit-dot--2" />
+              </motion.div>
+              <motion.div
+                className="impact__circle-inner"
+                animate={{ scale: [1, 1.04, 1] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <Leaf size={48} color="white" strokeWidth={1.5} />
+              </motion.div>
             </div>
           </div>
         </div>
       </section>
 
-
-      {/* ── CTA Section ──────────────────────────────────── */}
+      {/* ── CTA ──────────────────────────────────────────── */}
       <section className="cta-section">
         <div className="blob cta-section__blob1" />
         <div className="blob cta-section__blob2" />
         <div className="container cta-section__inner">
-          <Users size={40} color="var(--color-primary)" strokeWidth={1.5} />
-          <h2 className="display-lg cta-section__title">
-            Ready to take your first Green Step?
-          </h2>
-          <p className="cta-section__desc">
-            Join GreenSteps today and receive your first personalized carbon
-            reduction report for free.
-          </p>
-          <div className="cta-section__form">
-            <input
-              type="email"
-              className="input cta-section__input"
-              placeholder="Enter your email address"
-            />
-            <Link to="/dashboard" className="btn btn-primary btn-lg">
-              Get Started Free
-            </Link>
-          </div>
-          <p className="cta-section__note">No credit card required. Free forever for personal use.</p>
+          <Reveal>
+            <motion.div
+              className="cta-section__icon-wrap"
+              animate={{ rotate: [0, 8, -8, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <Users size={36} color="var(--color-primary)" strokeWidth={1.5} />
+            </motion.div>
+            <h2 className="display-lg cta-section__title">
+              Ready to take your first Green Step?
+            </h2>
+            <p className="cta-section__desc">
+              Join GreenSteps today and start tracking your carbon footprint for free.
+              No credit card. No commitment.
+            </p>
+            <div className="cta-section__btns">
+              <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+                <Link to="/login" className="btn btn-primary btn-lg cta-section__cta">
+                  Get Started Free <ArrowRight size={18} />
+                </Link>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                <Link to="/calculator" className="btn btn-secondary btn-lg">
+                  Try the Calculator
+                </Link>
+              </motion.div>
+            </div>
+            <p className="cta-section__note">No credit card required · Free forever for personal use</p>
+          </Reveal>
         </div>
       </section>
     </div>
